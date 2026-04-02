@@ -12,7 +12,7 @@ import crypto from 'node:crypto'
  * }}
  */
 function getAliyunOssCredentials() {
-    const environ = process.env.get('ALIYUN_OSS_ACCESS');
+    const environ = process.env['ALIYUN_OSS_ACCESS'];
     return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
 }
 
@@ -27,7 +27,7 @@ export default async (request, context) => {
         return new Response('Invalid request method: ' + request.method, {status: 400});
     }
 
-    const jwtKey = Buffer.from(process.env.get('INTRA_JWT'), 'base64');
+    const jwtKey = Buffer.from(process.env['INTRA_JWT'], 'base64');
     const {data: jsonRaw, signature: jsonSignature} = await request.json();
     const jsonBuffer = Buffer.from(jsonRaw, 'base64');
     const expectedSignature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
