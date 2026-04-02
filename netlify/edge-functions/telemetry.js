@@ -88,3 +88,7 @@ export default async (request, context) => {
 
     return responseV1(json, request, context);
 }
+
+export const config = {
+    path: '/api/telemetry'
+}
