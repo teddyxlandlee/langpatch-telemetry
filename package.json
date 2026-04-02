@@ -12,6 +12,7 @@
         "jszip": "^3.10.1",
         "node-fetch": "^3.3.2",
         "pako": "^2.1.0",
+        "proxy-agent": "^5.0.0",
         "speakeasy": "^2.0.0",
         "tweetnacl": "^1.0.3",
         "uuidv7": "^1.2.1"
