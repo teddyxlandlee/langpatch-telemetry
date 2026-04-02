@@ -29,6 +29,7 @@ export default async (request, context) => {
 
     const jwtKey = Buffer.from(process.env['INTRA_JWT'], 'base64');
     const {data: jsonRaw, signature: jsonSignature} = await request.json();
+    console.log('jsonRaw', jsonRaw)
     const jsonBuffer = Buffer.from(jsonRaw, 'base64');
     const expectedSignature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
     if (jsonSignature !== expectedSignature) {
