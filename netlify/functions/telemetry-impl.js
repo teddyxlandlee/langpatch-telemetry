@@ -41,6 +41,8 @@ export default async (request, context) => {
     if (date - prevProxyDate > 10_000) {
         return new Response('Token expired', {status: 408});
     }
+    delete json.now;
+    json.time = date.toISOString();
 
     const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
     
@@ -51,7 +53,7 @@ export default async (request, context) => {
         secure: true,
         authorizationV4: true,
     });
-    const promise = client.put(filename, Buffer.from(JSON.stringify(rootJson.data)), {
+    const promise = client.put(filename, Buffer.from(JSON.stringify(json)), {
         mime: 'application/json'
     });
     context.waitUntil(promise);
