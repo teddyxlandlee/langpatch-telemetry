@@ -45,7 +45,7 @@ async function responseV1(json, request, context) {
     const signature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
     const internalRequestPromise = fetch(new URL('/.netlify/functions/telemetry-impl', context.site.url), {
         method: 'POST',
-        body: {data: jsonBuffer.toString('base64'), signature},
+        body: JSON.stringify({data: jsonBuffer.toString('base64'), signature}),
     });
     context.waitUntil(internalRequestPromise);
 
