@@ -1,5 +1,7 @@
-import OSS from 'ali-oss';
+// import OSS from 'ali-oss';
+import { enc, HmacSHA1, MD5 } from 'crypto-js';
 import { Base64 } from 'js-base64'
+import fetch from 'node-fetch';
 import { uuidv7 } from 'uuidv7';
 
 /**
@@ -43,14 +45,33 @@ async function responseV1(json, request, context) {
     const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
     
     const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
-    const client = new OSS({
-        accessKeyId, accessKeySecret, bucket,
-        region: 'oss-cn-shanghai',
-        secure: true,
-        authorizationV4: true,
+    // const client = new OSS({
+    //     accessKeyId, accessKeySecret, bucket,
+    //     region: 'oss-cn-shanghai',
+    //     secure: true,
+    //     authorizationV4: true,
+    // });
+    // const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
+    // context.waitUntil(ossResponse);
+    const body = JSON.stringify(json);
+    const signature = (key => HmacSHA1(accessKeySecret, key).toString(enc.Base64))(
+        'PUT' + '\n' +
+        MD5(body).toString(enc.Base64) + '\n' +
+        'application/json' + '\n' +
+        date.toUTCString() + '\n' +
+        `/${bucket}/${filename}`
+    );
+
+    fetch(`https://${bucket}.oss-cn-shanghai.aliyuncs.com/${filename}`, {
+        method: 'PUT',
+        body,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `OSS ${accessKeyId}:${signature}`,
+            'Date': date.toUTCString(),
+        },
     });
-    const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
-    context.waitUntil(ossResponse);
+
     // Whether response is successful is not concerned by client
     return new Response(null, {status: 204});
 }

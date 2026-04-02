@@ -5,16 +5,9 @@
     "author": "teddyxlandlee",
     "description": "LangPatch Telemetry",
     "dependencies": {
-        "ali-oss": "^6.23.0",
-        "buffer": "^6.0.3",
         "crypto-js": "^4.2.0",
         "js-base64": "^3.7.8",
-        "jszip": "^3.10.1",
         "node-fetch": "^3.3.2",
-        "pako": "^2.1.0",
-        "proxy-agent": "^5.0.0",
-        "speakeasy": "^2.0.0",
-        "tweetnacl": "^1.0.3",
         "uuidv7": "^1.2.1"
     },
     "scripts": {}
