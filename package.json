@@ -1,0 +1,12 @@
+{
+    "name": "langpatch-version-updater",
+    "version": "1.0.0",
+    "description": "Update supported game versions for enchlevel-langpatch",
+    "author": "teddyxlandlee",
+    "private": true,
+    "dependencies": {
+        "ali-oss": "^6.23.0",
+        "jsonwebtoken": "^9.0.3",
+        "uuidv7": "^1.2.1"
+    }
+}

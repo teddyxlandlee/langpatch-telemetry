@@ -1,20 +1,19 @@
-import OSS from 'https://cdn.jsdelivr.net/npm/ali-oss@6.23.0/+esm';
-// import { enc, HmacSHA1, MD5 } from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm';
-import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
-import crypto from 'node:crypto'
+// import OSS from 'https://cdn.jsdelivr.net/npm/ali-oss@6.23.0/+esm';
+// import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
 import { Buffer } from 'node:buffer'
+import jwt from 'https://cdn.jsdelivr.net/npm/jsonwebtoken@9.0.3/+esm'
 
-/**
- * @returns {{
- *   accessKeyId: string,
- *   accessKeySecret: string,
- *   bucket: string,
- * }}
- */
-function getAliyunOssCredentials() {
-    const environ = Netlify.env.get('ALIYUN_OSS_ACCESS');
-    return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
-}
+// /**
+//  * @returns {{
+//  *   accessKeyId: string,
+//  *   accessKeySecret: string,
+//  *   bucket: string,
+//  * }}
+//  */
+// function getAliyunOssCredentials() {
+//     const environ = Netlify.env.get('ALIYUN_OSS_ACCESS');
+//     return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
+// }
 
 const LEVEL_MANDATORY = 0;
 const LEVEL_FUNCTIONAL = 1;
@@ -27,10 +26,9 @@ const LEVEL_OPTIONAL = 2;
  * @returns {Response}
  */
 async function responseV1(json, request, context) {
-    const date = new Date();
     try {
         _requires(request.headers.get('Content-Type') === 'application/json', 'Content type must be application/json');
-        json = checkV1(json, date);
+        json = checkV1(json);
     } catch (e) {
         return _fail400(e.message);
     }
@@ -42,23 +40,30 @@ async function responseV1(json, request, context) {
         };
     }
     
-    const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
+    // const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
     
-    const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
-    const client = new OSS({
-        accessKeyId, accessKeySecret, bucket,
-        region: 'oss-cn-shanghai',
-        secure: true,
-        authorizationV4: true,
+    // const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
+    // const client = new OSS({
+    //     accessKeyId, accessKeySecret, bucket,
+    //     region: 'oss-cn-shanghai',
+    //     secure: true,
+    //     authorizationV4: true,
+    // });
+    // const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
+    // context.waitUntil(ossResponse.then(console.log));   // DEBUG
+    const jwtKey = Buffer.from(Netlify.env.get('INTRA_JWT'), 'base64');
+    const res = jwt.sign({data: json}, jwtKey, {expiresIn: '10s'});
+    const internalRequestPromise = fetch('/.netlify/functions/telemetry-impl', {
+        method: 'POST',
+        body: res,
     });
-    const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
-    context.waitUntil(ossResponse.then(console.log));   // DEBUG
+    context.waitUntil(internalRequestPromise);
 
     // Whether response is successful is not concerned by client
-    return new Response(null, {status: 204});
+    return new Response(null, {status: 202});
 }
 
-function checkV1(json, dateNow) {
+function checkV1(json) {
     let client_time = json.client_time;
     _requires(typeof client_time === 'number', 'Numeral time required');
 
@@ -81,8 +86,6 @@ function checkV1(json, dateNow) {
 
 
     ret.client_time = new Date(client_time).toISOString()
-    ret.time = dateNow.toISOString()
-
     return ret
 }
 
