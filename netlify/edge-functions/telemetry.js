@@ -59,6 +59,7 @@ async function responseV1(json, request, context) {
 }
 
 function checkV1(json, dateNow) {
+    let client_time = json.client_time;
     _requires(typeof client_time === 'number', `Numeral time required, got ${client_time} (${typeof client_time})`);
 
     let telemetryLevel = json.telemetry_level;
@@ -70,12 +71,12 @@ function checkV1(json, dateNow) {
     let ret = {};
     
     if (telemetryLevel >= LEVEL_FUNCTIONAL) {
-        const {client_time, mod_version, mod_platform, mc_version} = json
+        const {mod_version, mod_platform, mc_version} = json
         _requires(typeof mod_version === 'string', 'string mod_version required')
         _requires(typeof mc_version === 'string', 'string mc_version required')
         _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform), 'unsupported mod platform')
 
-        ret = {client_time, mod_version, mod_platform, mc_version}
+        ret = {mod_version, mod_platform, mc_version}
     }
 
 
