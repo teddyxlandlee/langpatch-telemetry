@@ -29,10 +29,10 @@ const LEVEL_OPTIONAL = 2;
 async function responseV1(json, request, context) {
     const date = new Date();
     try {
-        _requires(request.headers.get('Content-Type') === 'application/json');
+        _requires(request.headers.get('Content-Type') === 'application/json', 'Content type must be application/json');
         json = checkV1(json, date);
-    } catch {
-        return _fail400();
+    } catch (e) {
+        return _fail400(e.message);
     }
 
     if (json.telemetry_level >= LEVEL_FUNCTIONAL) {
@@ -59,7 +59,7 @@ async function responseV1(json, request, context) {
 }
 
 function checkV1(json, dateNow) {
-    _requires(typeof client_time === 'number');
+    _requires(typeof client_time === 'number', 'Numeral time required');
 
     let telemetryLevel = json.telemetry_level;
     if (typeof telemetryLevel !== 'number' || telemetryLevel < LEVEL_MANDATORY || telemetryLevel > LEVEL_OPTIONAL) {
@@ -71,9 +71,9 @@ function checkV1(json, dateNow) {
     
     if (telemetryLevel >= LEVEL_FUNCTIONAL) {
         const {client_time, mod_version, mod_platform, mc_version} = json
-        _requires(typeof mod_version === 'string')
-        _requires(typeof mc_version === 'string')
-        _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform))
+        _requires(typeof mod_version === 'string', 'string mod_version required')
+        _requires(typeof mc_version === 'string', 'string mc_version required')
+        _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform), 'unsupported mod platform')
 
         ret = {client_time, mod_version, mod_platform, mc_version}
     }
@@ -86,7 +86,7 @@ function checkV1(json, dateNow) {
 }
 
 function _fail400(reason = 'Bad Request') {
-    return new Response(reason, {status: 400});
+    return new Response(reason || '', {status: 400});
 }
 
 function _requires(precondition, errorMessage = '') {
@@ -95,9 +95,9 @@ function _requires(precondition, errorMessage = '') {
 
 export default async (request, context) => {
     const json = await request.json();
-    if (!json || typeof json !== 'object') return _fail400();
+    if (!json || typeof json !== 'object') return _fail400('Not JSON object');
     // Currently only schema 1 is supported
-    if (json.schema !== 1) return _fail400();
+    if (json.schema !== 1) return _fail400('Schema must be 1');
 
     return responseV1(json, request, context);
 }
