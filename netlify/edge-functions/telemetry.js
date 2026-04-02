@@ -1,4 +1,4 @@
-// import OSS from 'ali-oss';
+import OSS from 'https://cdn.jsdelivr.net/npm/ali-oss@6.23.0/+esm';
 // import { enc, HmacSHA1, MD5 } from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm';
 import { Base64 } from 'https://cdn.jsdelivr.net/npm/js-base64@3.7.8/+esm'
 import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
@@ -45,51 +45,42 @@ async function responseV1(json, request, context) {
     const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
     
     const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
-    // const client = new OSS({
-    //     accessKeyId, accessKeySecret, bucket,
-    //     region: 'oss-cn-shanghai',
-    //     secure: true,
-    //     authorizationV4: true,
-    // });
-    // const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
-    // context.waitUntil(ossResponse);
-
-    const body = JSON.stringify(json);
-    const signature = (data => crypto.createHmac('sha1', accessKeySecret).update(data).digest('base64'))(
-        'PUT' + '\n' +
-        crypto.createHash('md5').update(body).digest('base64') + '\n' +
-        'application/json' + '\n' +
-        date.toUTCString() + '\n' +
-        `/${bucket}/${filename}`
-    );
-
-    fetch(`https://${bucket}.oss-cn-shanghai.aliyuncs.com/${filename}`, {
-        method: 'PUT',
-        body,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `OSS ${accessKeyId}:${signature}`,
-            'Date': date.toUTCString(),
-        },
+    const client = new OSS({
+        accessKeyId, accessKeySecret, bucket,
+        region: 'oss-cn-shanghai',
+        secure: true,
+        authorizationV4: true,
     });
+    const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
+    context.waitUntil(ossResponse);
 
     // Whether response is successful is not concerned by client
     return new Response(null, {status: 204});
 }
 
 function checkV1(json, dateNow) {
-    const {client_time, mod_version, mod_platform, mc_version} = json
-    _requires(typeof client_time === 'number')
-    _requires(typeof mod_version === 'string')
-    _requires(typeof mc_version === 'string')
-    _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform))
+    _requires(typeof client_time === 'number');
 
-    const ret = {client_time, mod_version, mod_platform, mc_version}
+    let telemetryLevel = json.telemetry_level;
+    if (typeof telemetryLevel !== 'number' || telemetryLevel < LEVEL_MANDATORY || telemetryLevel > LEVEL_OPTIONAL) {
+        json.telemetry_level = LEVEL_FUNCTIONAL;
+        telemetryLevel = LEVEL_FUNCTIONAL;
+    }
+
+    let ret = {};
+    
+    if (telemetryLevel >= LEVEL_FUNCTIONAL) {
+        const {client_time, mod_version, mod_platform, mc_version} = json
+        _requires(typeof mod_version === 'string')
+        _requires(typeof mc_version === 'string')
+        _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform))
+
+        ret = {client_time, mod_version, mod_platform, mc_version}
+    }
+
+
     ret.client_time = new Date(client_time).toISOString()
     ret.time = dateNow.toISOString()
-    if (typeof json.telemetry_level !== 'number' || json.telemetry_level < LEVEL_MANDATORY || json.telemetry_level > LEVEL_OPTIONAL) {
-        json.telemetry_level = LEVEL_FUNCTIONAL;
-    }
 
     return ret
 }
