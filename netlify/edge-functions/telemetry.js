@@ -3,18 +3,6 @@
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
 
-// /**
-//  * @returns {{
-//  *   accessKeyId: string,
-//  *   accessKeySecret: string,
-//  *   bucket: string,
-//  * }}
-//  */
-// function getAliyunOssCredentials() {
-//     const environ = Netlify.env.get('ALIYUN_OSS_ACCESS');
-//     return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
-// }
-
 const LEVEL_MANDATORY = 0;
 const LEVEL_FUNCTIONAL = 1;
 const LEVEL_OPTIONAL = 2;

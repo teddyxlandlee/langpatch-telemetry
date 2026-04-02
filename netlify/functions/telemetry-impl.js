@@ -53,6 +53,7 @@ export default async (request, context) => {
         secure: true,
         authorizationV4: true,
     });
+    console.log('accessKeyId', accessKeyId) // DEBUG
     const promise = client.put(filename, Buffer.from(JSON.stringify(json)), {
         mime: 'application/json'
     });
