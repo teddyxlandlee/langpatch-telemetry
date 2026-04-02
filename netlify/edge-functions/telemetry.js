@@ -52,7 +52,7 @@ async function responseV1(json, request, context) {
         authorizationV4: true,
     });
     const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
-    context.waitUntil(ossResponse);
+    context.waitUntil(ossResponse.then(console.log));   // DEBUG
 
     // Whether response is successful is not concerned by client
     return new Response(null, {status: 204});
