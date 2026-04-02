@@ -59,7 +59,7 @@ async function responseV1(json, request, context) {
 }
 
 function checkV1(json, dateNow) {
-    _requires(typeof client_time === 'number', 'Numeral time required');
+    _requires(typeof client_time === 'number', `Numeral time required, got ${client_time} (${typeof client_time})`);
 
     let telemetryLevel = json.telemetry_level;
     if (typeof telemetryLevel !== 'number' || telemetryLevel < LEVEL_MANDATORY || telemetryLevel > LEVEL_OPTIONAL) {
