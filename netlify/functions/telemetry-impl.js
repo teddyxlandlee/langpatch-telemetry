@@ -16,6 +16,8 @@ function getAliyunOssCredentials() {
     return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
 }
 
+const pad2 = x => ('' + x).padStart(2, '0');
+
 
 /**
  * @param {Reqeust} request
@@ -44,7 +46,7 @@ export default async (request, context) => {
     delete json.now;
     json.time = date.toISOString();
 
-    const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
+    const filename = `${date.getUTCFullYear()}/${pad2(date.getUTCMonth())}/${pad2(date.getUTCDate())}/${uuidv7()}.json`;
     
     const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
     const client = new OSS({
@@ -53,7 +55,6 @@ export default async (request, context) => {
         secure: true,
         authorizationV4: true,
     });
-    console.log('accessKeyId', accessKeyId) // DEBUG
     const promise = client.put(filename, Buffer.from(JSON.stringify(json)), {
         mime: 'application/json'
     });
