@@ -1,8 +1,8 @@
 import OSS from 'https://cdn.jsdelivr.net/npm/ali-oss@6.23.0/+esm';
 // import { enc, HmacSHA1, MD5 } from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm';
-import { Base64 } from 'https://cdn.jsdelivr.net/npm/js-base64@3.7.8/+esm'
 import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
 import crypto from 'node:crypto'
+import { Buffer } from 'node:buffer'
 
 /**
  * @returns {{
@@ -13,7 +13,7 @@ import crypto from 'node:crypto'
  */
 function getAliyunOssCredentials() {
     const environ = Netlify.env.get('ALIYUN_OSS_ACCESS');
-    return JSON.parse(Base64.decode(environ));
+    return JSON.parse(Buffer.from(environ, 'base64').toString('utf-8'));
 }
 
 const LEVEL_MANDATORY = 0;
