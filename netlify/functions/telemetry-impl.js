@@ -1,7 +1,8 @@
 import { Buffer } from 'node:buffer'
-import jwt from 'jsonwebtoken'
+// import jwt from 'jsonwebtoken'
 import OSS from 'ali-oss';
 import { uuidv7 } from 'uuidv7';
+import crypto from 'node:crypto'
 
 /**
  * @returns {{
@@ -22,19 +23,25 @@ function getAliyunOssCredentials() {
  * @returns {Response}
  */
 export default async (request, context) => {
-    const jwtKey = Buffer.from(Netlify.env.get('INTRA_JWT'), 'base64');
-    let rootJson = {};
-    try {
-        rootJson = jwt.verify(await request.text(), jwtKey, {maxAge: '10s'});
-    } catch (e) {
-        if (e instanceof jwt.TokenExpiredError) {
-            return new Response('Token expired', {status: 401});
-        } else {
-            throw e;    // unexpected
-        }
+    if (request.method !== 'POST') {
+        return new Response('Invalid request method: ' + request.method, {status: 400});
     }
 
+    const jwtKey = Buffer.from(process.env.get('INTRA_JWT'), 'base64');
+    const {data: jsonRaw, signature: jsonSignature} = await request.json();
+    const jsonBuffer = Buffer.from(jsonRaw, 'base64');
+    const expectedSignature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
+    if (jsonSignature !== expectedSignature) {
+        return new Response('Unauthorized access', {status: 401});
+    }
+
+    const json = JSON.parse(jsonBuffer.toString('utf-8'));
+    const prevProxyDate = new Date(json.now);
     const date = new Date();
+    if (date - prevProxyDate > 10_000) {
+        return new Response('Token expired', {status: 408});
+    }
+
     const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
     
     const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();

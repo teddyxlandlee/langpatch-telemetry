@@ -1,7 +1,7 @@
 // import OSS from 'https://cdn.jsdelivr.net/npm/ali-oss@6.23.0/+esm';
 // import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
 import { Buffer } from 'node:buffer'
-import jwt from 'https://cdn.jsdelivr.net/npm/jsonwebtoken@9.0.3/+esm'
+import crypto from 'node:crypto'
 
 // /**
 //  * @returns {{
@@ -40,22 +40,12 @@ async function responseV1(json, request, context) {
         };
     }
     
-    // const filename = `${date.getUTCFullYear()}/${date.getUTCMonth()}/${date.getUTCDate()}/${uuidv7()}.json`;
-    
-    // const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
-    // const client = new OSS({
-    //     accessKeyId, accessKeySecret, bucket,
-    //     region: 'oss-cn-shanghai',
-    //     secure: true,
-    //     authorizationV4: true,
-    // });
-    // const ossResponse = client.put(filename, Buffer.from(JSON.stringify(json), 'utf-8'), {mime: 'application/json'});
-    // context.waitUntil(ossResponse.then(console.log));   // DEBUG
     const jwtKey = Buffer.from(Netlify.env.get('INTRA_JWT'), 'base64');
-    const res = jwt.sign({data: json}, jwtKey, {expiresIn: '10s'});
+    const jsonBuffer = Buffer.from(JSON.stringify(json), 'utf-8');
+    const signature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
     const internalRequestPromise = fetch('/.netlify/functions/telemetry-impl', {
         method: 'POST',
-        body: res,
+        body: {data: jsonBuffer.toString('base64'), signature},
     });
     context.waitUntil(internalRequestPromise);
 
@@ -86,6 +76,7 @@ function checkV1(json) {
 
 
     ret.client_time = new Date(client_time).toISOString()
+    ret.now = Date.now();   // For proxy validation
     return ret
 }
 
@@ -98,6 +89,10 @@ function _requires(precondition, errorMessage = '') {
 }
 
 export default async (request, context) => {
+    if (request.method !== 'POST') {
+        return _fail400("Invalid request method: " + request.method);
+    }
+
     const json = await request.json();
     if (!json || typeof json !== 'object') return _fail400('Not JSON object');
     // Currently only schema 1 is supported
