@@ -27,11 +27,15 @@ export default async (request, context) => {
         return new Response('Invalid request method: ' + request.method, {status: 400});
     }
 
+    console.log(1)
     const jwtKey = Buffer.from(process.env['INTRA_JWT'], 'base64');
+    console.log(2)
     const {data: jsonRaw, signature: jsonSignature} = await request.json();
-    console.log('jsonRaw', jsonRaw)
+    console.log(3)
     const jsonBuffer = Buffer.from(jsonRaw, 'base64');
+    console.log(4)
     const expectedSignature = crypto.createHmac('sha512', jwtKey).update(jsonBuffer).digest('base64');
+    console.log(5)
     if (jsonSignature !== expectedSignature) {
         return new Response('Unauthorized access', {status: 401});
     }
