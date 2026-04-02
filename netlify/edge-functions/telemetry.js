@@ -1,8 +1,7 @@
 // import OSS from 'ali-oss';
-import { enc, HmacSHA1, MD5 } from 'crypto-js';
-import { Base64 } from 'js-base64'
-import fetch from 'node-fetch';
-import { uuidv7 } from 'uuidv7';
+import { enc, HmacSHA1, MD5 } from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm';
+import { Base64 } from 'https://cdn.jsdelivr.net/npm/js-base64@3.7.8/+esm'
+import { uuidv7 } from 'https://cdn.jsdelivr.net/npm/uuidv7@1.2.1/+esm';
 
 /**
  * @returns {{
