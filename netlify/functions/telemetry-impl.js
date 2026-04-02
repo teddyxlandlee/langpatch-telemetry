@@ -46,7 +46,7 @@ export default async (request, context) => {
     delete json.now;
     json.time = date.toISOString();
 
-    const filename = `${date.getUTCFullYear()}/${pad2(date.getUTCMonth())}/${pad2(date.getUTCDate())}/${uuidv7()}.json`;
+    const filename = `${date.getUTCFullYear()}/${pad2(date.getUTCMonth()+1)}/${pad2(date.getUTCDate())}/${uuidv7()}.json`;
     
     const {accessKeyId, accessKeySecret, bucket} = getAliyunOssCredentials();
     const client = new OSS({
