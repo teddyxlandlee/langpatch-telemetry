@@ -53,7 +53,7 @@ function checkV1V2(json) {
         telemetryLevel = LEVEL_FUNCTIONAL;
     }
 
-    let ret = {schema: json.schema};
+    let ret = {schema: json.schema, telemetry_level: telemetryLevel};
     
     if (telemetryLevel >= LEVEL_FUNCTIONAL) {
         const {mod_version, mod_platform, mc_version} = json
