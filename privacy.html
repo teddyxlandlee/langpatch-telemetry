@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - EnchLevel-LangPatch</title>
+    
+    <!-- 1. 引入 marked (用于解析 Markdown) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 2. 引入 DOMPurify (用于清洗 HTML，防止 XSS) -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+    <style>
+        /* --- 基础页面样式 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- Markdown 内容样式 --- */
+        h1, h2, h3 { color: #2c3e50; margin-top: 1.5em; margin-bottom: 0.5em; }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 0.3em; }
+        h2 { border-bottom: 1px solid #eee; }
+        
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        p { margin: 1em 0; }
+        
+        /* 代码块样式 */
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; color: #e74c3c; }
+        pre { background: #2d2d2d; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        pre code { background: none; color: #ccc; padding: 0; }
+        
+        /* 引用样式 */
+        blockquote { border-left: 4px solid #3498db; padding-left: 15px; color: #666; margin: 20px 0; background: #fdfdfd; }
+        
+        /* 列表样式 */
+        ul, ol { margin: 1em 0; padding-left: 2em; }
+        li { margin-bottom: 0.5em; }
+
+        /* 表格样式 */
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <div id="privacy-content" class="content">
+        <p style="text-align: center; color: #666;">Loading privacy policy...</p>
+    </div>
+
+    <script>
+        // 配置 marked 选项 (可选)
+        marked.setOptions({
+            gfm: true, // 支持 GitHub 风格的 Markdown
+            breaks: true // 支持换行符
+        });
+
+        // 获取 Markdown 文件
+        // 假设 PRIVACY.md 位于网站根目录
+        const mdPath = '/PRIVACY.md'; 
+
+        fetch(mdPath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load markdown: ${response.status} ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(markdown => {
+                // 1. 将 Markdown 解析为 HTML 字符串
+                const rawHtml = marked.parse(markdown);
+                
+                // 2. 使用 DOMPurify 清洗 HTML (关键步骤！)
+                const cleanHtml = DOMPurify.sanitize(rawHtml);
+                
+                // 3. 渲染到页面
+                document.getElementById('privacy-content').innerHTML = cleanHtml;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('privacy-content').innerHTML = `
+                    <div style="color: red; text-align: center;">
+                        <h3>⚠️ Error Loading Policy</h3>
+                        <p>Could not load PRIVACY.md. Please check your connection or file path.</p>
+                        <p><small>${error.message}</small></p>
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
