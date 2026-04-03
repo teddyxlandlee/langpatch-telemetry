@@ -61,7 +61,7 @@ function checkV1V2(json) {
         _requires(typeof mc_version === 'string', 'string mc_version required')
         _requires(['fabric', 'forge', 'neoforge', 'quilt', 'unknown'].includes(mod_platform), 'unsupported mod platform')
 
-        ret = {mod_version, mod_platform, mc_version}
+        ret = {...ret, mod_version, mod_platform, mc_version}
     }
 
 
