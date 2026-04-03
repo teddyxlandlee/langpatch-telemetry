@@ -7,16 +7,18 @@ const LEVEL_MANDATORY = 0;
 const LEVEL_FUNCTIONAL = 1;
 const LEVEL_OPTIONAL = 2;
 
+const SCHEMA_VERSION = 2;
+
 /**
  * 
  * @param {object} json 
  * @param {Request} request 
  * @returns {Response}
  */
-async function responseV1(json, request, context) {
+async function responseV1V2(json, request, context) {
     try {
         _requires(request.headers.get('Content-Type') === 'application/json', 'Content type must be application/json');
-        json = checkV1(json);
+        json = checkV1V2(json);
     } catch (e) {
         return _fail400(e.message);
     }
@@ -41,7 +43,7 @@ async function responseV1(json, request, context) {
     return new Response(null, {status: 202});
 }
 
-function checkV1(json) {
+function checkV1V2(json) {
     let client_time = json.client_time;
     _requires(typeof client_time === 'number', 'Numeral time required');
 
@@ -51,7 +53,7 @@ function checkV1(json) {
         telemetryLevel = LEVEL_FUNCTIONAL;
     }
 
-    let ret = {};
+    let ret = {schema: json.schema};
     
     if (telemetryLevel >= LEVEL_FUNCTIONAL) {
         const {mod_version, mod_platform, mc_version} = json
@@ -65,6 +67,27 @@ function checkV1(json) {
 
     ret.client_time = new Date(client_time).toISOString()
     ret.now = Date.now();   // For proxy validation
+
+    // Also v2 fields
+    if (json.schema >= 2) {
+        if (telemetryLevel >= LEVEL_FUNCTIONAL) {
+            _requires(typeof json.current_hooks === 'object', 'current_hooks object must be present for schema v2, level 1');
+            const {enchantment, potion} = json.current_hooks;
+            _validateResourceLocation(enchantment, 'enchantment hooks');
+            _validateResourceLocation(potion, 'potion hooks');
+            ret.current_hooks = {enchantment, potion};
+        }
+        if (telemetryLevel >= LEVEL_OPTIONAL) {
+            _requires(typeof json.current_hooks === 'object', 'all_hooks object must be present for schema v2, level 2')
+            const {enchantment, potion} = json.all_hooks;
+            _requires(Array.isArray(enchantment), 'all_hooks.enchantment must be array');
+            _requires(Array.isArray(potion), 'all_hooks.potion must be array');
+            enchantment.forEach((e, idx) => _requires(_validateResourceLocation(e, 'all_hooks.enchantment#' + idx)));
+            potion.forEach((e, idx) => _requires(_validateResourceLocation(e, 'all_hooks.potion#' + idx)));
+            ret.all_hooks = {enchantment, potion};
+        }
+    }
+
     return ret
 }
 
@@ -76,6 +99,13 @@ function _requires(precondition, errorMessage = '') {
     if (!precondition) throw new Error(errorMessage)
 }
 
+function _validateResourceLocation(field, fieldName = 'Input') {
+    _requires(
+        typeof field === 'string' && /^([0-9a-z_\-]+:)?[0-9a-z_\-/]+$/.test(field),
+        fieldName + ' must be valid resource location'
+    );
+}
+
 export default async (request, context) => {
     if (request.method !== 'POST') {
         return _fail400("Invalid request method: " + request.method);
@@ -83,10 +113,12 @@ export default async (request, context) => {
 
     const json = await request.json();
     if (!json || typeof json !== 'object') return _fail400('Not JSON object');
-    // Currently only schema 1 is supported
-    if (json.schema !== 1) return _fail400('Schema must be 1');
+    // Currently only schema 1 & 2 is supported
+    if (typeof json.schema !== 'number' || json.schema <= 0 || json.schema > SCHEMA_VERSION) {
+        return _fail400('Schema must be 1..' + SCHEMA_VERSION);
+    }
 
-    return responseV1(json, request, context);
+    return responseV1V2(json, request, context);
 }
 
 export const config = {
