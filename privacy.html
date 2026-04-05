@@ -64,7 +64,7 @@
 
     <script>
         const renderer = new marked.Renderer();
-        customRenderer.heading = (text, level, raw, slugger) => {
+        renderer.heading = (text, level, raw, slugger) => {
             // text: 标题的 HTML 文本内容
             // level: 标题的层级 (1-6)
             // raw: 标题的原始文本
