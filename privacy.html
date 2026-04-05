@@ -63,10 +63,29 @@
     </div>
 
     <script>
+        const renderer = new Renderer();
+        customRenderer.heading = (text, level, raw, slugger) => {
+            // text: 标题的 HTML 文本内容
+            // level: 标题的层级 (1-6)
+            // raw: 标题的原始文本
+            // slugger: 一个用于生成唯一 ID 的工具
+
+            // 只为 h2 级别的标题添加 id
+            if (level === 2) {
+                // 使用 slugger.slug() 方法根据原始文本生成一个 URL 友好的 ID
+                const id = slugger.slug(raw);
+                return `<h${level} id="${id}">${text}</h${level}>`;
+            }
+
+            // 对于其他级别的标题，使用默认渲染方式，不添加 id
+            return `<h${level}>${text}</h${level}>`;
+        };
+
         // 配置 marked 选项 (可选)
         marked.setOptions({
-            gfm: true, // 支持 GitHub 风格的 Markdown
-            breaks: true // 支持换行符
+            gfm: true,      // 支持 GitHub 风格的 Markdown
+            breaks: true,   // 支持换行符
+            renderer
         });
 
         // 获取 Markdown 文件
