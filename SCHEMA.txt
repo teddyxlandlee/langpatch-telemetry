@@ -9,6 +9,12 @@ For schema >= 1 (
     mod_version: string
     mod_platform: "fabric" | "forge" | "neoforge" | "quilt" | "unknown"
     mc_version: string
+
+    # Automatically detected
+    client_context: {
+      country: string
+      timezone: string
+    }
   )
 )
 
