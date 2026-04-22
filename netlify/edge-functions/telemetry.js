@@ -60,7 +60,7 @@ function checkV1V2(json) {
         _requires(typeof mod_version === 'string', 'string mod_version required')
         _requires(typeof mc_version === 'string', 'string mc_version required')
         _requires([
-            'fabric', 'ornithe', 'legacy-fabric' /* since 3.8.5 */,
+            'fabric', 'ornithes' /* sic */, 'legacy-fabric' /* since 3.8.5 */,
             'forge', 'neoforge', 'quilt', 'unknown'
         ].includes(mod_platform), 'unsupported mod platform')
 
