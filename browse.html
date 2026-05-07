@@ -59,7 +59,7 @@
 </head>
 <body>
     <div id="privacy-content" class="content">
-        <p style="text-align: center; color: #666;">Loading privacy policy...</p>
+        <p style="text-align: center; color: #666;">Loading...</p>
     </div>
 
     <script>
@@ -72,7 +72,7 @@
 
         // 获取 Markdown 文件
         const mdPath = window.location.hash.substring(1);
-        if (!mdPath.endswith('.md')) {
+        if (!mdPath.endsWith('.md')) {
             document.getElementById('privacy-content').innerText = '⚠️ Invalid URL';
 
             return;
