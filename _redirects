@@ -3,7 +3,9 @@
 /privacy.html   /browse/#/PRIVACY.md
 
 # reports
-/reports/:year/:month/:ordinal/en       /browse/#/:year/:month/:ordinal/en.md
-/reports/:year/:month/:ordinal/en.html  /browse/#/:year/:month/:ordinal/en.md
-/reports/:year/:month/:ordinal/zh       /browse/#/:year/:month/:ordinal/zh.md
-/reports/:year/:month/:ordinal/zh.html  /browse/#/:year/:month/:ordinal/zh.md
+/reports/:year/:month/:ordinal/en       /browse/#/reports/:year/:month/:ordinal/en.md
+/reports/:year/:month/:ordinal/en.html  /browse/#/reports/:year/:month/:ordinal/en.md
+/reports/:year/:month/:ordinal/zh       /browse/#/reports/:year/:month/:ordinal/zh.md
+/reports/:year/:month/:ordinal/zh.html  /browse/#/reports/:year/:month/:ordinal/zh.md
+/reports/:year/:month/:ordinal			/browse/#/reports/:year/:month/:ordinal/zh.md 302 Language=zh
+/reports/:year/:month/:ordinal			/browse/#/reports/:year/:month/:ordinal/en.md 302
