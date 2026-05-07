@@ -63,16 +63,20 @@
     </div>
 
     <script>
-
-        // 配置 marked 选项 (可选)
+        (function() {
+            // 配置 marked 选项 (可选)
         marked.setOptions({
             gfm: true,      // 支持 GitHub 风格的 Markdown
             breaks: true,   // 支持换行符
         });
 
         // 获取 Markdown 文件
-        // 假设 PRIVACY.md 位于网站根目录
-        const mdPath = '/PRIVACY.md'; 
+        const mdPath = window.location.hash.substring(1);
+        if (!mdPath.endswith('.md')) {
+            document.getElementById('privacy-content').innerText = '⚠️ Invalid URL';
+
+            return;
+        }
 
         fetch(mdPath)
             .then(response => {
@@ -106,6 +110,7 @@
                     </div>
                 `;
             });
+        })();
     </script>
 </body>
 </html>
