@@ -1,11 +1,11 @@
 # privacy.html
-/privacy        /browse/#/PRIVACY.md
-/privacy.html   /browse/#/PRIVACY.md
+/privacy        /browse?file=/PRIVACY.md
+/privacy.html   /browse?file=/PRIVACY.md
 
 # reports
-/reports/:year/:month/:ordinal/en       /browse/#/reports/:year/:month/:ordinal/en.md
-/reports/:year/:month/:ordinal/en.html  /browse/#/reports/:year/:month/:ordinal/en.md
-/reports/:year/:month/:ordinal/zh       /browse/#/reports/:year/:month/:ordinal/zh.md
-/reports/:year/:month/:ordinal/zh.html  /browse/#/reports/:year/:month/:ordinal/zh.md
-/reports/:year/:month/:ordinal			/browse/#/reports/:year/:month/:ordinal/zh.md 302 Language=zh
-/reports/:year/:month/:ordinal			/browse/#/reports/:year/:month/:ordinal/en.md 302
+/reports/:year/:month/:ordinal/en       /browse?file=/reports/:year/:month/:ordinal/en.md
+/reports/:year/:month/:ordinal/en.html  /browse?file=/reports/:year/:month/:ordinal/en.md
+/reports/:year/:month/:ordinal/zh       /browse?file=/reports/:year/:month/:ordinal/zh.md
+/reports/:year/:month/:ordinal/zh.html  /browse?file=/reports/:year/:month/:ordinal/zh.md
+/reports/:year/:month/:ordinal			/browse?file=/reports/:year/:month/:ordinal/zh.md 302 Language=zh
+/reports/:year/:month/:ordinal			/browse?file=/reports/:year/:month/:ordinal/en.md 302

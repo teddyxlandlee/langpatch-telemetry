@@ -71,7 +71,8 @@
         });
 
         // 获取 Markdown 文件
-        const mdPath = window.location.hash.substring(1);
+        //const mdPath = window.location.hash.substring(1);
+        const mdPath = new URLSearchParams(window.location.search).get('file');
         if (!mdPath.endsWith('.md')) {
             document.getElementById('privacy-content').innerText = '⚠️ Invalid URL';
 
