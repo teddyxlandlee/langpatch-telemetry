@@ -19,13 +19,11 @@
             line-height: 1.5;
         }
 
-        /* 主容器 */
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* 头部区域 */
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -53,7 +51,6 @@
             margin-top: 0.25rem;
         }
 
-        /* 语言切换 & 控制栏 */
         .controls {
             display: flex;
             gap: 0.75rem;
@@ -93,7 +90,6 @@
             background: #e2e8f0;
         }
 
-        /* 搜索框 */
         .search-wrapper {
             min-width: 240px;
         }
@@ -114,7 +110,6 @@
             box-shadow: 0 0 0 3px rgba(44,95,138,0.2);
         }
 
-        /* 统计 + 重试 */
         .info-bar {
             display: flex;
             justify-content: space-between;
@@ -151,7 +146,6 @@
             background: #e2e8f0;
         }
 
-        /* 卡片网格 */
         .reports-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -159,7 +153,6 @@
             margin-top: 0.5rem;
         }
 
-        /* 报告卡片 */
         .report-card {
             background: white;
             border-radius: 1.25rem;
@@ -235,7 +228,6 @@
             border-color: #bdd3ec;
         }
 
-        /* 空状态 & 加载 & 错误 */
         .empty-state, .loading-state, .error-state {
             background: white;
             border-radius: 1.5rem;
@@ -263,11 +255,6 @@
         .error-icon {
             font-size: 2.2rem;
             margin-bottom: 0.5rem;
-        }
-
-        button {
-            background: none;
-            border: none;
         }
 
         footer {
@@ -371,9 +358,9 @@
     };
 
     // 全局状态
-    let currentLang = 'zh';        // 默认中文，也可以根据浏览器动态，但为了直观设中文，并提供切换
+    let currentLang = 'zh';        // 默认中文（会根据浏览器微调）
     let rawReports = [];            // 原始id数组 (string[])
-    let filteredReports = [];       // 过滤+排序后的数组 (存储id)
+    let filteredReports = [];       // 过滤+排序后的数组
     let isLoading = false;
     let errorMsg = null;
     let searchQuery = '';
@@ -389,7 +376,7 @@
     const footerNote = document.getElementById('footerNote');
     const langBtns = document.querySelectorAll('.lang-btn');
 
-    // 辅助函数：更新页面静态文本（标题，占位符，按钮文字等非列表区域）
+    // 辅助：更新静态文本（不包含动态列表区域）
     function updateStaticUI() {
         const t = i18n[currentLang];
         mainTitle.innerText = t.title;
@@ -397,12 +384,9 @@
         searchInput.placeholder = t.filterPlaceholder;
         retryTextSpan.innerText = t.retryBtn;
         footerNote.innerText = t.footerMsg;
-        // 额外更新stats区域动态部分（因为统计区域依赖语言和数据，稍后由render统一调用renderStats）
         if (!isLoading && !errorMsg) {
             renderStats();
         }
-        // 如果处于错误或加载态，保留状态文案但更新错误区域的文字？由render统一更新避免覆盖
-        // 但静态文本全部刷新，然后如果当前显示错误或加载状态需要重新渲染对应区域（刷新文案）
         refreshContentBasedOnState();
     }
 
@@ -411,10 +395,9 @@
         const regex = /^(\d{4}\/\d{2}\/\d{2})_(.+)$/;
         const match = id.match(regex);
         if (match) {
-            const dateStr = match[1]; // "2026/04/16"
+            const dateStr = match[1];
             const suffix = match[2];
             const [year, month, day] = dateStr.split('/').map(Number);
-            // 使用本地时间构造 (注意月份是0-index)
             const dateObj = new Date(year, month - 1, day);
             if (!isNaN(dateObj.getTime())) {
                 return { dateObj, suffix, rawDateStr: dateStr };
@@ -423,11 +406,10 @@
         return null;
     }
 
-    // 根据当前语言格式化日期 + 后缀
+    // 格式化标题（根据语言）
     function formatReportTitle(id, lang) {
         const parsed = parseReportId(id);
         if (!parsed) {
-            // 如果格式不符合预期，直接返回原始id
             return { main: id, tooltip: id };
         }
         const { dateObj, suffix, rawDateStr } = parsed;
@@ -438,14 +420,13 @@
             const day = dateObj.getDate();
             formattedDate = `${year}年${month}月${day}日`;
         } else {
-            // 英文格式: Apr 16, 2026
             formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
         const display = `${formattedDate} · ${suffix}`;
         return { main: display, tooltip: `${rawDateStr}_${suffix}` };
     }
 
-    // 对原始id排序（按日期降序 + 后缀字母顺序以保证同一天稳定）
+    // 排序：按日期降序 + 后缀字母顺序
     function sortReportsByIds(ids) {
         return [...ids].sort((a, b) => {
             const parsedA = parseReportId(a);
@@ -453,27 +434,22 @@
             if (!parsedA && !parsedB) return a.localeCompare(b);
             if (!parsedA) return 1;
             if (!parsedB) return -1;
-            // 按日期倒序（最新在前）
             const timeA = parsedA.dateObj.getTime();
             const timeB = parsedB.dateObj.getTime();
             if (timeA !== timeB) return timeB - timeA;
-            // 相同日期按后缀字母排序
             return parsedA.suffix.localeCompare(parsedB.suffix);
         });
     }
 
-    // 过滤逻辑 (基于原始id和格式化的文本)
+    // 过滤（基于ID原始字符串）
     function filterReportsByIds(ids, query) {
         if (!query.trim()) return ids;
         const lowerQuery = query.toLowerCase().trim();
         return ids.filter(id => {
             if (id.toLowerCase().includes(lowerQuery)) return true;
-            // 同时也匹配格式化后的标题（中英文动态但过滤不依赖语言切换，为了保证体验，统一基于原始id中英文部分匹配足够）
             const parsed = parseReportId(id);
             if (parsed) {
-                const suffixMatch = parsed.suffix.toLowerCase().includes(lowerQuery);
-                if (suffixMatch) return true;
-                // 也可以匹配日期数字部分
+                if (parsed.suffix.toLowerCase().includes(lowerQuery)) return true;
                 const dateClean = parsed.rawDateStr.replace(/\//g, '');
                 if (dateClean.includes(lowerQuery)) return true;
             }
@@ -481,22 +457,24 @@
         });
     }
 
-    // 更新统计信息
+    // 更新统计栏文字
     function renderStats() {
         if (!statsInfo) return;
         const t = i18n[currentLang];
         const total = rawReports.length;
         const shown = filteredReports.length;
-        if (total === 0 && !isLoading && !errorMsg) {
-            statsInfo.innerText = t.noReports;
+        if (isLoading) {
+            statsInfo.innerText = `⏳ ${t.loading}`;
         } else if (errorMsg) {
             statsInfo.innerText = `⚠️ ${errorMsg}`;
+        } else if (total === 0) {
+            statsInfo.innerText = t.noReports;
         } else {
             statsInfo.innerText = t.stats.replace('{shown}', shown).replace('{total}', total) + ` · ${t.sortHint}`;
         }
     }
 
-    // 核心渲染函数（根据当前语言、过滤后的 reports 生成卡片）
+    // 核心渲染：根据当前状态显示列表或加载/错误界面
     function renderReports() {
         if (isLoading) {
             reportsContainer.innerHTML = `
@@ -515,7 +493,7 @@
                     <div class="error-icon">⚠️</div>
                     <div style="font-weight: 600; margin-bottom: 0.5rem;">${i18n[currentLang].errorTitle}</div>
                     <div style="font-size: 0.85rem;">${i18n[currentLang].errorDesc}</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.75rem; color:#9ca3af;">${errorMsg}</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.75rem; color:#9ca3af;">${escapeHtml(errorMsg)}</div>
                 </div>
             `;
             renderStats();
@@ -535,10 +513,8 @@
             return;
         }
 
-        // 生成卡片html
         const t = i18n[currentLang];
         const cardsHtml = filteredReports.map(id => {
-            // 生成三个链接
             const defaultUrl = `/reports/${id}/`;
             const enUrl = `/reports/${id}/en`;
             const zhUrl = `/reports/${id}/zh`;
@@ -565,7 +541,6 @@
         renderStats();
     }
 
-    // 简单防XSS
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -577,29 +552,29 @@
         });
     }
 
-    // 根据原始数据 + searchQuery 更新 filteredReports，并重绘
+    // 根据 rawReports、searchQuery 更新 filteredReports 并刷新界面
     function applyFilterAndRender() {
-        if (!rawReports.length && !isLoading && !errorMsg) {
+        if (isLoading || errorMsg) {
+            renderReports();
+            return;
+        }
+        if (!rawReports.length) {
             filteredReports = [];
             renderReports();
             return;
         }
-        if (errorMsg || isLoading) {
-            renderReports();
-            return;
-        }
-        // 先排序（获得基准排序列表），再过滤（但排序可复用）
         const sortedRaw = sortReportsByIds(rawReports);
         const filtered = filterReportsByIds(sortedRaw, searchQuery);
         filteredReports = filtered;
         renderReports();
     }
 
-    // 重新请求 /reports.json
+    // 获取远程数据（核心修复：确保 isLoading 在数据处理前置 false）
     async function fetchReports() {
-        isLoading = true;
+        // 重置错误，显示加载
         errorMsg = null;
-        renderReports();  // 显示 loading
+        isLoading = true;
+        renderReports();  // 显示loading状态
         
         try {
             const response = await fetch('/reports.json', {
@@ -610,13 +585,9 @@
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             const data = await response.json();
-            // 校验数据格式: 应为 string[]
             if (Array.isArray(data) && data.every(item => typeof item === 'string')) {
-                rawReports = data;
-                // 去重可选，保留原始顺序但后续会排序展示
-                rawReports = [...new Set(rawReports)];
-                searchQuery = searchInput.value.trim();
-                applyFilterAndRender();
+                rawReports = [...new Set(data)];   // 去重
+                errorMsg = null;
             } else {
                 throw new Error('Invalid data format: expected string[]');
             }
@@ -624,15 +595,15 @@
             console.error(err);
             errorMsg = err.message || 'Network error';
             rawReports = [];
-            filteredReports = [];
-            renderReports();
         } finally {
+            // 无论成功或失败，关闭加载标志，然后重新应用过滤及渲染
             isLoading = false;
-            renderReports(); // 确保错误态或完成态更新
+            // 关键修复：确保在加载标志关闭后重新计算过滤数据并刷新界面
+            applyFilterAndRender();
         }
     }
 
-    // 刷新状态（加载/错误时也要保证静态文本正确）
+    // 刷新当前内容（用于语言切换等场景，不重新请求数据）
     function refreshContentBasedOnState() {
         if (isLoading) {
             renderReports();
@@ -643,40 +614,29 @@
         }
     }
 
-    // 监听搜索输入
+    // 搜索监听
     function setupSearch() {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value;
             if (!isLoading && !errorMsg) {
                 applyFilterAndRender();
             } else if (!isLoading && errorMsg) {
-                // 如果处于错误态，搜索无效，但仍保留; 但不清除
-            } else if (isLoading) {
-                // 加载中不处理过滤，但可以暂存query, 加载结束后再应用
-                // 这里加载结束后会再次调用apply，但是先保留query值
+                // 错误状态下不处理过滤，但保留query值以便重试后使用
             }
         });
     }
 
-    // 语言切换
+    // 语言初始化（基于浏览器偏好）
     function initLanguage() {
-        // 检测浏览器初始语言：如果是中文则默认中文，否则英文
         const browserLang = navigator.language || '';
         if (browserLang.toLowerCase().startsWith('zh')) {
             currentLang = 'zh';
         } else {
             currentLang = 'en';
         }
-        // 但为了 demo 友好，可强制先中文，但尊重浏览器
-        // 更新按钮高亮
         updateLangButtonActive();
         updateStaticUI();
-        // 重新渲染整个列表（标题格式化依赖语言，统计文本也依赖语言）
-        if (!isLoading && !errorMsg) {
-            applyFilterAndRender();
-        } else {
-            refreshContentBasedOnState();
-        }
+        refreshContentBasedOnState();
     }
 
     function updateLangButtonActive() {
@@ -695,28 +655,16 @@
         currentLang = lang;
         updateLangButtonActive();
         updateStaticUI();
-        // 重新渲染动态卡片（卡片内的日期格式、按钮文本都会改变）
-        if (!isLoading && !errorMsg) {
-            applyFilterAndRender();
-        } else {
-            refreshContentBasedOnState();
-        }
+        refreshContentBasedOnState();
     }
 
-    // 重试逻辑
     function setupRetry() {
         retryBtn.addEventListener('click', () => {
             if (isLoading) return;
-            // 重置错误，清空旧数据
-            errorMsg = null;
-            rawReports = [];
-            filteredReports = [];
-            searchQuery = searchInput.value.trim();
             fetchReports();
         });
     }
 
-    // 监听语言切换按钮
     function bindLangEvents() {
         langBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -726,16 +674,14 @@
         });
     }
 
-    // 初次加载
     function init() {
         bindLangEvents();
         setupSearch();
         setupRetry();
-        initLanguage();       // 设置语言及UI初始
-        fetchReports();       // 获取远程数据并渲染
+        initLanguage();
+        fetchReports();   // 首次加载数据
     }
 
-    // 启动
     init();
 </script>
 </body>
