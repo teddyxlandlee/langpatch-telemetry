@@ -3,6 +3,7 @@
 # Custom
 /internal_stats
 .venv
+__pycache__
 
 # dependencies
 /node_modules

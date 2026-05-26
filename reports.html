@@ -413,15 +413,10 @@
             return { main: id, tooltip: id };
         }
         const { dateObj, suffix, rawDateStr } = parsed;
-        let formattedDate = '';
-        if (lang === 'zh') {
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth() + 1;
-            const day = dateObj.getDate();
-            formattedDate = `${year}年${month}月${day}日`;
-        } else {
-            formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        }
+        const formattedDate = dateObj.toLocaleDateString(
+            lang === 'zh' ? 'zh-CN' : 'en-US',
+            { year: 'numeric', month: 'short', day: 'numeric' }
+        );
         const display = `${formattedDate} · ${suffix}`;
         return { main: display, tooltip: `${rawDateStr}_${suffix}` };
     }
