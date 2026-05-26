@@ -2,6 +2,7 @@ import logging
 import json
 from .bucket_spec import RemoteBucket
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone as _timezone, timedelta
 from typing import Iterable, Optional
 
@@ -34,21 +35,33 @@ def sort_dict_by_value(d: dict) -> dict:
     sorted_items = sorted(d.items(), reverse=True, key=lambda x: x[1])
     return dict(sorted_items)
 
-def fetch_files(date_prefixes: Iterable[str], remote_bucket: RemoteBucket) -> Iterable[dict]:
-    # remote_bucket = connect_to_remote_storage()
-    
+def fetch_files(date_prefixes: Iterable[str], remote_bucket: RemoteBucket, max_workers: int = 10) -> Iterable[dict]:
+    def _fetch_and_parse_single_file(key):
+        try:
+            content = b''.join(remote_bucket.get_file_content(key))
+            content_as_json = json.loads(content)
+            assert isinstance(content_as_json, dict), 'Not a JSON object'
+            return {'status': 'success', 'key': key, 'data': content_as_json}
+        except Exception as e:
+            return {'status': 'fail', 'key': key, 'error': str(e)}
+
+    keys_to_fetch = []
     for date_prefix in date_prefixes:
         logging.info(f'Scanning date: {date_prefix}')
-        for key in remote_bucket.list_files(prefix=date_prefix):
-            if not key.endswith('.json'):
-                continue
-            try:
-                content = b''.join(remote_bucket.get_file_content(key))
-                content_as_json = json.loads(content)
-                assert isinstance(content_as_json, dict), 'Not a JSON object'
-                yield {'status': 'success', 'key': key, 'data': content_as_json}
-            except Exception as e:
-                yield {'status': 'fail', 'error': str(e)}
+        keys_to_fetch.extend(key for key in remote_bucket.list_files(prefix=date_prefix) if key.endswith('.json'))
+    
+    logging.info(f"Found {len(keys_to_fetch)} JSON files to fetch.")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_key = {executor.submit(_fetch_and_parse_single_file, key): key for key in keys_to_fetch}
+        
+        for future in as_completed(future_to_key):
+            result = future.result()
+            if result['status'] == 'success':
+                logging.debug(f"Successfully fetched: {result['key']}")
+            else:
+                logging.warning(f"Failed to fetch {result['key']}: {result['error']}")
+            yield result
 
 def analyze_data(data_list: dict[str, dict]) -> dict:
     telemetry_level = defaultdict(int)

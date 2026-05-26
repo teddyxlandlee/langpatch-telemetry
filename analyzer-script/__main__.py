@@ -31,10 +31,10 @@ def connect_to_remote_storage() -> RemoteBucket:
     ctr: RemoteBucketConstructor
     match os.getenv('BUCKET_PROVIDER', '').lower():
         case 'aliyun':
-            from bucket_aliyun import AliyunBucket
+            from .bucket_aliyun import AliyunBucket
             ctr = AliyunBucket
         case 'tencent':
-            from bucket_tencent import TencentBucket
+            from .bucket_tencent import TencentBucket
             ctr = TencentBucket
         case _:
             raise NotImplementedError('Unsupported bucket provider: ' + os.getenv('BUCKET_PROVIDER', '<unknown>'))
