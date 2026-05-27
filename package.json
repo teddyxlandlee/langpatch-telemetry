@@ -1,9 +1,9 @@
 {
-    "name": "langpatch-version-updater",
+    "name": "langpatch-telemetry",
     "version": "1.0.0",
-    "description": "Update supported game versions for enchlevel-langpatch",
+    "description": "Telemetry for langpatch",
     "author": "teddyxlandlee",
-    "private": true,
+    "license": "AGPL-3.0-only",
     "dependencies": {
         "ali-oss": "^6.23.0",
         "uuidv7": "^1.2.1"
