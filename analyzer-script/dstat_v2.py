@@ -70,6 +70,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
     mc_version = defaultdict(int)
     country = defaultdict(int)
     timezone = defaultdict(int)
+    geo_via_reverse_proxy = 0
     hooks_e_current = defaultdict(int)
     hooks_p_current = defaultdict(int)
     hooks_e_all = defaultdict(int)
@@ -106,6 +107,8 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
         data_timezone = str(data_client_context.get('timezone'))
         country[data_country] += 1
         timezone[data_timezone] += 1
+        if data_client_context.get('via_reverse_proxy', False):
+            geo_via_reverse_proxy += 1
 
         if data_schema < 2:
             continue
@@ -141,6 +144,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
             'context': {
                 'country': sort_dict_by_value(country),
                 'timezone': sort_dict_by_value(timezone),
+                'geo_via_reverse_proxy': geo_via_reverse_proxy,
             },
         },
         'customization': {

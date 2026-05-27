@@ -12,8 +12,12 @@ For schema >= 1 (
 
     # Automatically detected
     client_context: {
-      country: string
+      country: {
+        name: string
+        code: string
+      }
       timezone: string
+      via_reverse_proxy?: boolean
     }
   )
 )
