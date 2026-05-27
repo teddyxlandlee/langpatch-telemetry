@@ -1,6 +1,6 @@
 # LangPatch Telemetry
 
-This repository contains the source code for the telemetry/reporting system used by `EnchLevel-LangPatch`.
+This repository contains the source code for the telemetry/reporting system used by [Enchantment Level Language Patch](https://modrinth.com/mod/enchlevel-langpatch).
 
 It is primarily responsible for:
 
