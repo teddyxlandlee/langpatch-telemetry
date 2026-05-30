@@ -2,6 +2,11 @@ schema: 1 | 2
 client_time: iso_8601
 time: iso_8601
 
+proxy_context: {
+  via_reverse_proxy: boolean
+  is_request_timed_out: boolean
+}
+
 For schema >= 1 (
   telemetry_level: 0 | 1 | 2
   
@@ -17,7 +22,6 @@ For schema >= 1 (
         code: string
       }
       timezone: string
-      via_reverse_proxy?: boolean
     }
   )
 )

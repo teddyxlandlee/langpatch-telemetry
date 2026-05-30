@@ -10,5 +10,10 @@
     },
     "scripts": {
         "postinstall": "node gen_report_list.cjs"
+    },
+    "devDependencies": {
+        "@netlify/edge-functions": "^3.0.8",
+        "@types/deno": "^2.7.0",
+        "typescript": "^6.0.3"
     }
 }

@@ -5,6 +5,13 @@
 .venv
 __pycache__
 
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
 # dependencies
 /node_modules
 /.pnp
