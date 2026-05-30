@@ -13,7 +13,7 @@ const REDIRECT_VERSION_WHITELIST: readonly string[] = [
     '3.8.10',
 ] as const
 
-function isWhitelisted(request: Request): boolean {
+async function isWhitelisted(request: Request): Promise<boolean> {
     if (!ENABLE_REDIRECT) return false
 
     try {
@@ -30,7 +30,7 @@ const fun: EdgeFunction = async (request: Request, context: Context) => {
         return new Response('Bad request method', {status: 405})
     }
 
-    if (isWhitelisted(request)) {
+    if (await isWhitelisted(request)) {
         return new Response('Migrated to ' + MIGRATED_URL, {
             status: 307,    // Temporary Redirect
             headers: {
