@@ -9,3 +9,5 @@
 /reports/:year/:month/:ordinal/zh.html  /browse?file=/reports/:year/:month/:ordinal/zh.md
 /reports/:year/:month/:ordinal			/browse?file=/reports/:year/:month/:ordinal/zh.md 302 Language=zh
 /reports/:year/:month/:ordinal			/browse?file=/reports/:year/:month/:ordinal/en.md 302
+
+https://telemetry.langpatch.mc.7c7.icu/browse https://privacy.ellp.mods.hixland.com/browse 301!
