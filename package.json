@@ -4,9 +4,6 @@
     "description": "Telemetry for langpatch",
     "author": "teddyxlandlee",
     "license": "AGPL-3.0-only",
-    "dependencies": {
-        "jsonwebtoken": "^9.0.3"
-    },
     "scripts": {
         "postinstall": "node gen_report_list.cjs && bash pull-migrate-script.sh"
     },

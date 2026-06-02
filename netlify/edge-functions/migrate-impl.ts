@@ -1,5 +1,5 @@
 import { Context } from '@netlify/edge-functions'
-import jwt from 'jsonwebtoken'
+import jwt from 'https://esm.sh/jsonwebtoken'
 
 //noinspection JSUnusedGlobalSymbols
 export const config = {
@@ -45,7 +45,7 @@ async function handle(req: Request, context: Context): Promise<Response> {
         referrer: context.url.href,
         body: delegateText,
         headers: {
-            'Via': 'LangPatch-Migrate-Proxy',
+            'Via': 'LangPatch-Migrate-Proxy (v1)',
             'Content-Type': 'text/plain; charset=utf-8',
         },
     })
