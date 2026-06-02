@@ -44,7 +44,7 @@ const fun: EdgeFunction = async (request: Request, context: Context) => {
         })
     } else {
         // const { default: legacyFun } = await import('./telemetry.js')
-        const { default: legacyFun } = await import ('../../migrate-impl.js')
+        const { default: legacyFun } = await import ('./migrate-impl.js')
         return legacyFun(request, context)
     }
 }
