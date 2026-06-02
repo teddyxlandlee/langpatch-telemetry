@@ -5,15 +5,15 @@
     "author": "teddyxlandlee",
     "license": "AGPL-3.0-only",
     "dependencies": {
-        "ali-oss": "^6.23.0",
-        "uuidv7": "^1.2.1"
+        "jsonwebtoken": "^9.0.3"
     },
     "scripts": {
-        "postinstall": "node gen_report_list.cjs"
+        "postinstall": "node gen_report_list.cjs && bash pull-migrate-script.sh"
     },
     "devDependencies": {
         "@netlify/edge-functions": "^3.0.8",
         "@types/deno": "^2.7.0",
+        "@types/jsonwebtoken": "^9.0.10",
         "typescript": "^6.0.3"
     }
 }

@@ -1,5 +1,6 @@
 import { Config, Context, EdgeFunction } from '@netlify/edge-functions'
 
+//noinspection JsUnusedGlobalSymbols
 export const config: Config = {
     path: '/api/telemetry'
 }
@@ -9,7 +10,7 @@ const ENABLE_REDIRECT: boolean = false
 const MIGRATED_URL = Netlify.env.get('MIGRATED_URL') || 'https://url.invalid'
 
 const REDIRECT_VERSION_WHITELIST: readonly string[] = [
-    '3.8.6',
+    // '3.8.6',
     '3.8.10',
 ] as const
 
@@ -42,9 +43,11 @@ const fun: EdgeFunction = async (request: Request, context: Context) => {
             }
         })
     } else {
-        const { default: legacyFun } = await import('./telemetry.js')
+        // const { default: legacyFun } = await import('./telemetry.js')
+        const { default: legacyFun } = await import ('../../migrate-impl.js')
         return legacyFun(request, context)
     }
 }
 
+//noinspection JsUnusedGlobalSymbols
 export default fun
