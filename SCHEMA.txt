@@ -35,8 +35,8 @@ For schema >= 2 (
   )
   For telemetry_level >= 2 (
     all_hooks: {
-      enchantment: array<string>
-      potion: array<string>
+      enchantment: string[]
+      potion: string[]
     }
   )
 )
