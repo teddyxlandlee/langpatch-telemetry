@@ -43,6 +43,11 @@ const fun: EdgeFunction = async (request: Request, context: Context) => {
             }
         })
     } else {
+        if (Date.now() > Date.parse('2026-06-20T11:45:14Z')) {
+            // Reject all legacy requests
+            return new Response('Legacy versions are no longer supported', {status: 410})
+        }
+
         // const { default: legacyFun } = await import('./telemetry.js')
         const { default: legacyFun } = await import ('./migrate-impl.ts')
         return legacyFun(request, context)
