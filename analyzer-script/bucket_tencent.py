@@ -6,7 +6,7 @@ from typing import Iterable, Optional
 class TencentBucket(RemoteBucket):
     def __init__(self, bucket_name: str, access_key_id: str, access_key_secret: str, region: str, **kwargs):
         self.bucket_name = bucket_name
-        auth_token: Optional[str] = kwargs.get('token', default=None)
+        auth_token: Optional[str] = kwargs.get('token', None)
         self.client = qcloud_cos.CosS3Client(qcloud_cos.CosConfig(
             Region=region, SecretId=access_key_id, SecretKey=access_key_secret, Token=auth_token
         ))
