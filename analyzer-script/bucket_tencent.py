@@ -3,6 +3,8 @@ from qcloud_cos.streambody import StreamBody
 from .bucket_spec import RemoteBucket
 from typing import Iterable, Optional
 
+# TODO: mute qcloud_cos.cos_client logger, it's too noisy. Make those INFO logs displayed in TRACE.
+
 class TencentBucket(RemoteBucket):
     def __init__(self, bucket_name: str, access_key_id: str, access_key_secret: str, region: str, **kwargs):
         self.bucket_name = bucket_name

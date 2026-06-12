@@ -5,7 +5,7 @@ export const config: Config = {
     path: '/api/telemetry'
 }
 
-const ENABLE_REDIRECT: boolean = false
+const ENABLE_REDIRECT: boolean = true
 
 const MIGRATED_URL = Netlify.env.get('MIGRATED_URL') || 'https://url.invalid'
 

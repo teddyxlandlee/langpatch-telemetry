@@ -45,7 +45,7 @@ def connect_to_remote_storage() -> RemoteBucket:
         region=BUCKET_REGION,
     )
 
-def main(start_date: str, end_date: str, zip_output: str, analysis_output: str):
+def main(start_date: str, end_date: str, zip_output: str, analysis_output: str, max_workers: int):
     assert re.match('^\\d{4}/\\d{2}/\\d{2}', start_date), 'Illegal start_date'
     assert re.match('^\\d{4}/\\d{2}/\\d{2}', end_date), 'Illegal end_date'
     date_prefixes = date_range(start_date, end_date)
@@ -53,7 +53,7 @@ def main(start_date: str, end_date: str, zip_output: str, analysis_output: str):
     logging.info(f'Fetching {start_date} -> {end_date} ({len(date_prefixes)} day(s))')
     
     remote_bucket = connect_to_remote_storage()
-    fetched = fetch_files(date_prefixes, remote_bucket)
+    fetched = fetch_files(date_prefixes, remote_bucket, max_workers)
     # Eagerly load all files to memory (meanwhile filter fails)
     filtered: dict[str, dict] = {}
     errors = []
@@ -113,6 +113,7 @@ def _main():
     parser.add_argument('-i', '--external-data', type=str, help='zip file or folder to external data input. This skips data downloading.')
     parser.add_argument('-a', '--analysis-output', type=str, required=True, help='path of analysis output')
     parser.add_argument('--log-level', type=str, help='log level (INFO, WARNING, ERROR)')
+    parser.add_argument('-w', '--max-workers', type=int, default=10, help='Max workers (thread) count when fetching files from internet.')
 
     args = parser.parse_args()
 
@@ -146,7 +147,7 @@ def _main():
         end_date_input = yesterday
         print(f"Date unspecified, defaulted to yesterday: {yesterday}")
     
-    main(start_date_input, end_date_input, args.data_output, args.analysis_output)
+    main(start_date_input, end_date_input, args.data_output, args.analysis_output, args.max_workers)
 
 if __name__ == '__main__':
     _main()

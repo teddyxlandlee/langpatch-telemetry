@@ -103,11 +103,13 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
         hyb_mov_platform_mcv[f'{data_mod_version}@{data_mod_platform}-{data_mc_version}'] += 1
 
         data_client_context: dict = dict(data.get('client_context', {}))
-        data_country = str(data_client_context.get('country', {}).get('name'))
+        data_country = str(data_client_context.get('country', {}).get('code'))
         data_timezone = str(data_client_context.get('timezone'))
+        proxy_context: dict = dict(data.get('proxy_context', {}))
+
         country[data_country] += 1
         timezone[data_timezone] += 1
-        if data_client_context.get('via_reverse_proxy', False):
+        if proxy_context.get('via_reverse_proxy', False):
             geo_via_reverse_proxy += 1
 
         if data_schema < 2:
