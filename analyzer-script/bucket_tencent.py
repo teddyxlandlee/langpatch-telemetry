@@ -28,3 +28,10 @@ class TencentBucket(RemoteBucket):
         result = self.client.get_object(Bucket=self.bucket_name, Key=key)
         body: StreamBody = result['Body']
         yield from body.get_stream()
+    
+    def delete_files(self, keys: list[str]) -> Iterable[str]:
+        if len(keys) > 1000:
+            raise ValueError('Key list exceeds size limit')
+        req_object = {'Quiet': 'true', 'Objects': [{'Key': k} for k in keys]}
+        result: dict = self.client.delete_objects(Bucket=self.bucket_name, Delete=req_object)
+        return ['{}: {}'.format(e.get('Key', '???'), e.get('Message', '???')) for e in result.get('Error', ())]

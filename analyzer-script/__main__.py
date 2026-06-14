@@ -113,7 +113,7 @@ def _main():
     parser.add_argument('-i', '--external-data', type=str, help='zip file or folder to external data input. This skips data downloading.')
     parser.add_argument('-a', '--analysis-output', type=str, required=True, help='path of analysis output')
     parser.add_argument('--log-level', type=str, help='log level (INFO, WARNING, ERROR)')
-    parser.add_argument('-w', '--max-workers', type=int, default=10, help='Max workers (thread) count when fetching files from internet.')
+    parser.add_argument('-w', '--max-workers', type=int, default=50, help='Max workers (thread) count when fetching files from internet.')
 
     args = parser.parse_args()
 

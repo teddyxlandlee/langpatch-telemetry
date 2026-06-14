@@ -25,3 +25,10 @@ class AliyunBucket(RemoteBucket):
         req = _oss.GetObjectRequest(bucket=self.bucket_name, key=key)
         body: _oss.types.StreamBody = self.client.get_object(req).body
         yield from body.iter_bytes()
+    
+    def delete_files(self, keys: list[str]) -> Iterable[str]:
+        if len(keys) > 1000:
+            raise ValueError('Key list exceeds size limit')
+        req = _oss.DeleteMultipleObjectsRequest(bucket=self.bucket_name, objects=list(keys), quiet=True)
+        self.client.delete_multiple_objects(req)
+        return ()
