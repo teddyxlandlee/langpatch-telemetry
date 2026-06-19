@@ -27,7 +27,7 @@ BUCKET_NAME = os.getenv('BUCKET_NAME')
 BUCKET_REGION = os.getenv('BUCKET_REGION')
 # =============
 
-def connect_to_remote_storage() -> RemoteBucket:
+def connect_to_remote_storage(max_workers: int = 10) -> RemoteBucket:
     ctr: RemoteBucketConstructor
     match os.getenv('BUCKET_PROVIDER', '').lower():
         case 'aliyun':
@@ -43,6 +43,7 @@ def connect_to_remote_storage() -> RemoteBucket:
         access_key_id=ACCESS_KEY_ID,
         access_key_secret=ACCESS_KEY_SECRET,
         region=BUCKET_REGION,
+        max_workers=max_workers,
     )
 
 def main(start_date: str, end_date: str, zip_output: str, analysis_output: str, max_workers: int):
@@ -52,7 +53,7 @@ def main(start_date: str, end_date: str, zip_output: str, analysis_output: str, 
 
     logging.info(f'Fetching {start_date} -> {end_date} ({len(date_prefixes)} day(s))')
     
-    remote_bucket = connect_to_remote_storage()
+    remote_bucket = connect_to_remote_storage(max_workers=max_workers)
     fetched = fetch_files(date_prefixes, remote_bucket, max_workers)
     # Eagerly load all files to memory (meanwhile filter fails)
     filtered: dict[str, dict] = {}

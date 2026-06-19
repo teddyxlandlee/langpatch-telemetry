@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone as _timezone, timedelta
 from typing import Iterable, Optional
 
+logger = logging.getLogger('dstat_v2')
 
 def parse_iso_time(time_str: str) -> Optional[datetime]:
     if not time_str:
@@ -36,7 +37,7 @@ def sort_dict_by_value(d: dict) -> dict:
     return dict(sorted_items)
 
 def fetch_files(date_prefixes: Iterable[str], remote_bucket: RemoteBucket, max_workers: int = 10) -> Iterable[dict]:
-    def _fetch_and_parse_single_file(key):
+    def _fetch_and_parse_single_file(key: str):
         try:
             content = b''.join(remote_bucket.get_file_content(key))
             content_as_json = json.loads(content)
@@ -45,22 +46,34 @@ def fetch_files(date_prefixes: Iterable[str], remote_bucket: RemoteBucket, max_w
         except Exception as e:
             return {'status': 'fail', 'key': key, 'error': str(e)}
 
-    keys_to_fetch = []
-    for date_prefix in date_prefixes:
-        logging.info(f'Scanning date: {date_prefix}')
-        keys_to_fetch.extend(key for key in remote_bucket.list_files(prefix=date_prefix) if key.endswith('.json'))
-    
-    logging.info(f"Found {len(keys_to_fetch)} JSON files to fetch.")
+    def _scan_date(date_prefix: str):
+        logger.info('Scanning date: %s', date_prefix)
+        ret = [key for key in remote_bucket.list_files(prefix=date_prefix) if key.endswith('.json')]
+        logger.info('Finished scanning %s, found %s files', date_prefix, len(ret))
+        return ret
 
+    keys_to_fetch = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_key = {executor.submit(_fetch_and_parse_single_file, key): key for key in keys_to_fetch}
-        
-        for future in as_completed(future_to_key):
+        for future in as_completed(executor.submit(_scan_date, prefix) for prefix in date_prefixes):
+            keys_to_fetch.extend(future.result())
+    logger.info("Found %s JSON files to fetch.", len(keys_to_fetch))
+
+    completed = 0
+    last_logged_percent = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for future in as_completed(executor.submit(_fetch_and_parse_single_file, key) for key in keys_to_fetch):
             result = future.result()
             if result['status'] == 'success':
-                logging.debug(f"Successfully fetched: {result['key']}")
+                logger.debug("Successfully fetched: %s", result['key'])
             else:
-                logging.warning(f"Failed to fetch {result['key']}: {result['error']}")
+                logger.warning('Failed to fetch %s: %s', result['key'], result['error'])
+            
+            completed += 1          # 主线程改，安全
+            current_percent = int(completed * 100 / len(keys_to_fetch))
+            if current_percent > last_logged_percent:
+                last_logged_percent = current_percent  # 主线程改，安全
+                logger.info('Loading telemetry objects... %s%%', current_percent)
+
             yield result
 
 def analyze_data(data_list: dict[str, dict]) -> dict:
@@ -82,7 +95,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
     for data in data_list.values():
         data_telemetry_level = data.get('telemetry_level', -1)
         if not isinstance(data_telemetry_level, int):
-            logging.warning('Invalid data: %s. Skipping.', data)
+            logger.warning('Invalid data: %s. Skipping.', data)
             continue
         telemetry_level['lvl' + str(data_telemetry_level)] += 1
 
@@ -118,14 +131,16 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
         data_current_hooks_e: str = str(data_current_hooks.get('enchantment'))
         data_current_hooks_p: str = str(data_current_hooks.get('potion'))
 
+        hooks_e_current[data_current_hooks_e] += 1
+        hooks_p_current[data_current_hooks_p] += 1
+
         if data_telemetry_level < 2:
             continue
         
         data_all_hooks: dict[str, list[str]] = dict(data.get('all_hooks'), {})
         data_all_hooks_e: tuple[str] = tuple(data_all_hooks.get('enchantment', ()))
         data_all_hooks_p: tuple[str] = tuple(data_all_hooks.get('potion', ()))
-        hooks_e_current[data_current_hooks_e] += 1
-        hooks_p_current[data_current_hooks_p] += 1
+
         for k in data_all_hooks_e: hooks_e_all[str(k)] += 1
         for k in data_all_hooks_p: hooks_p_all[str(k)] += 1
 
@@ -162,11 +177,3 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
     }
 
     return ret
-
-
-
-
-
-
-
-
