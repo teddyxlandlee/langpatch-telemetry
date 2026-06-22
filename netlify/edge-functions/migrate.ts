@@ -1,4 +1,4 @@
-import { Config, Context, EdgeFunction } from '@netlify/edge-functions'
+import type { Config, Context, EdgeFunction } from '@netlify/edge-functions'
 
 //noinspection JsUnusedGlobalSymbols
 export const config: Config = {
@@ -26,31 +26,23 @@ async function isWhitelisted(request: Request): Promise<boolean> {
     }
 }
 
-const fun: EdgeFunction = async (request: Request, context: Context) => {
+const fun: EdgeFunction = async (request: Request, _context: Context) => {
     if (request.method !== 'POST') {
         return new Response('Bad request method', {status: 405})
     }
 
     if (await isWhitelisted(request)) {
         return new Response('Migrated to ' + MIGRATED_URL, {
-            status: 307,    // Temporary Redirect
+            status: 308,    // Permanent Redirect
             headers: {
                 // Real redirect target, supported by 3.8.10+
                 'Location': MIGRATED_URL,
                 'Content-Type': 'text/plain; charset=utf-8',
-                // Whitelisted endpoint, used as reverse proxy
-                'X-Entrypoint-Redirect': 'https://telemetry2.langpatch.mc.7c7.icu/migrate',
+                // No reverse proxy
             }
         })
     } else {
-        if (Date.now() > Date.parse('2026-06-20T11:45:14Z')) {
-            // Reject all legacy requests
-            return new Response('Legacy versions are no longer supported', {status: 410})
-        }
-
-        // const { default: legacyFun } = await import('./telemetry.js')
-        const { default: legacyFun } = await import ('./migrate-impl.ts')
-        return legacyFun(request, context)
+        return new Response('Legacy versions are no longer supported', {status: 410})
     }
 }
 

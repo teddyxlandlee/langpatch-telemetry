@@ -11,3 +11,4 @@
 /reports/:year/:month/:ordinal			/browse?file=/reports/:year/:month/:ordinal/en.md 302
 
 https://telemetry.langpatch.mc.7c7.icu/browse https://privacy.ellp.mods.hixland.com/browse 301!
+https://telemetry.langpatch.mc.7c7.icu/reports https://privacy.ellp.mods.hixland.com/reports 301!

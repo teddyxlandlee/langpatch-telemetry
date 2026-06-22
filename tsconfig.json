@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "rootDir": "./netlify",
+    "declaration": false,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["netlify/**/*.ts"],
+  "exclude": ["node_modules"]
+}
