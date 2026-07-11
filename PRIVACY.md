@@ -8,7 +8,7 @@
 
 ## English Version
 
-**Last Updated:** June 3, 2026
+**Last Updated:** July 11, 2026
 
 This mod (EnchLevel-LangPatch) respects your privacy. We collect telemetry data only with your explicit consent to help us improve the stability and functionality of the software. You have full control over the level of data collection at any time via the configuration file.
 
@@ -26,7 +26,7 @@ Depending on your settings in `config/enchlevel-langpatch-telemetry.txt`, we may
   - In addition to the necessary data, we collect:
   - **Game Environment:** Minecraft version, mod loader (e.g., Fabric/Forge), and mod version.
   - **Geolocation:** Country code and time zone (used to analyze regional usage patterns).
-  - **Current Hook State:** Resource locations of currently active enchantments and potion effects.
+  - **Current Hook State:** Resource locations of currently active enchantments and potion effects, and the count of anonymous hooks registered during the session (used to detect cross-mod interactions).
 
 - **Optional (Level 2)**
   - In addition to functional data, we collect:
@@ -80,7 +80,7 @@ We aim to respond to all legitimate requests within 30 days.
 
 ## 中文版
 
-**最后更新日期：** 2026年6月3日
+**最后更新日期：** 2026年7月11日
 
 本模组（EnchLevel-LangPatch）尊重您的隐私。我们仅在您明确同意的情况下收集遥测数据，旨在帮助我们改进软件的稳定性与功能。您可以随时通过配置文件完全控制数据的收集级别。
 
@@ -98,7 +98,7 @@ We aim to respond to all legitimate requests within 30 days.
   - 除了上述必要数据外，我们还会收集：
   - **游戏环境信息**：Minecraft 版本号、模组加载器（如 Fabric/Forge）及模组版本。
   - **地理信息**：国家代码和时区（用于分析区域性的使用习惯）。
-  - **当前钩子状态**：当前生效的附魔和药水效果的资源位置（Resource Location）。
+  - **当前钩子状态**：当前生效的附魔和药水效果的资源位置（Resource Location），以及会话期间注册的匿名 hooks 数量（用于检测跨模组联动）。
 
 - **可选数据 (Optional / Level 2)**
   - 除了功能改进数据外，我们还会收集：

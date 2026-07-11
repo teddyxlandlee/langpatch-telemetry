@@ -1,4 +1,4 @@
-schema: 1 | 2
+schema: 1 | 2 | 3
 client_time: iso_8601
 time: iso_8601
 
@@ -38,5 +38,11 @@ For schema >= 2 (
       enchantment: string[]
       potion: string[]
     }
+  )
+)
+
+For schema >= 3 (
+  For telemetry_level >= 1 (
+    patch_count: number
   )
 )
