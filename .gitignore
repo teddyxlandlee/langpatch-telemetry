@@ -4,6 +4,7 @@
 /internal_stats
 .venv
 __pycache__
+.summary.env
 
 # IDE
 .vscode/

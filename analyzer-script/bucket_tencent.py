@@ -47,6 +47,6 @@ class TencentBucket(RemoteBucket):
         if len(keys) > 1000:
             raise ValueError('Key list exceeds size limit')
         with logger_muter():
-            req_object = {'Quiet': 'true', 'Objects': [{'Key': k} for k in keys]}
+            req_object = {'Quiet': 'true', 'Object': [{'Key': k} for k in keys]}
             result: dict = self.client.delete_objects(Bucket=self.bucket_name, Delete=req_object)
             return ['{}: {}'.format(e.get('Key', '???'), e.get('Message', '???')) for e in result.get('Error', ())]

@@ -1,11 +1,12 @@
 import argparse
 import itertools
 import logging
+import math
 import os
 import sys
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from types import Iterable, Generator
+from typing import Iterable, Generator
 from .bucket_spec import RemoteBucket, RemoteBucketConstructor
 
 try:
@@ -27,13 +28,18 @@ DEL_BUCKET_NAME = os.getenv('BUCKET_NAME_DEL')
 DEL_BUCKET_REGION = os.getenv('BUCKET_REGION_DEL')
 # =============
 
+logger = logging.getLogger('remobj_v2')
+
 # Maximum keys per single delete_files call (imposed by bucket API)
 _BATCH_SIZE = 1000
 
 
-def connect_to_remote_storage() -> RemoteBucket:
+def connect_to_remote_storage(max_workers: int = 200) -> RemoteBucket:
     ctr: RemoteBucketConstructor
-    match os.getenv('BUCKET_PROVIDER_DEL', '').lower():
+    provider = os.getenv('BUCKET_PROVIDER_DEL', '').lower()
+    logger.info('Connecting to remote storage (provider: %s, region: %s, bucket: %s) ...',
+                provider, DEL_BUCKET_REGION, DEL_BUCKET_NAME)
+    match provider:
         case 'aliyun':
             from .bucket_aliyun import AliyunBucket
             ctr = AliyunBucket
@@ -42,12 +48,16 @@ def connect_to_remote_storage() -> RemoteBucket:
             ctr = TencentBucket
         case _:
             raise NotImplementedError('Unsupported bucket provider: ' + os.getenv('BUCKET_PROVIDER_DEL', '<unknown>'))
-    return ctr(
+    logger.info('Initializing bucket client...')
+    bucket = ctr(
         bucket_name=DEL_BUCKET_NAME,
         access_key_id=DEL_ACCESS_KEY_ID,
         access_key_secret=DEL_ACCESS_KEY_SECRET,
         region=DEL_BUCKET_REGION,
+        max_workers=max_workers,
     )
+    logger.info('Connected to remote storage successfully.')
+    return bucket
 
 
 def collect_keys_from_zip(zip_path: str) -> list[str]:
@@ -58,8 +68,9 @@ def collect_keys_from_zip(zip_path: str) -> list[str]:
 
 def _batched(iterable: Iterable, n: int) -> Generator:
     """Yield successive n-sized chunks from iterable."""
+    itr = iter(iterable)
     while True:
-        chunk = list(itertools.islice(iterable, n))
+        chunk = list(itertools.islice(itr, n))
         if not chunk:
             return
         yield chunk
@@ -73,29 +84,37 @@ def _delete_batch(bucket: RemoteBucket, keys: list[str]) -> tuple[int, list[str]
 
 
 def main(zip_path: str, max_workers: int):
-    logging.info('Collecting object keys from zip: %s', zip_path)
+    remote_bucket = connect_to_remote_storage(max_workers=max_workers)
+
+    logger.info('Collecting object keys from zip: %s', zip_path)
     keys_to_delete = collect_keys_from_zip(zip_path)
 
     if not keys_to_delete:
-        logging.warning('No files found in the zip archive. Nothing to delete.')
+        logger.warning('No files found in the zip archive. Nothing to delete.')
         return
 
-    logging.info('Collected %d object key(s) from zip.', len(keys_to_delete))
-
-    remote_bucket = connect_to_remote_storage()
+    logger.info('Collected %d object key(s) from zip.', len(keys_to_delete))
 
     # Split into batches of at most _BATCH_SIZE
-    batches = list(_batched(keys_to_delete, _BATCH_SIZE))
-    logging.info('Split into %d batch(es) (max %d keys/batch).', len(batches), _BATCH_SIZE)
+    logger.info('Splitting keys into batches...')
+    batches = _batched(keys_to_delete, _BATCH_SIZE)
+    batches_len_estimated = math.ceil(len(keys_to_delete) / _BATCH_SIZE)
+    logger.info('Split into %d batch(es) (max %d keys/batch).', batches_len_estimated, _BATCH_SIZE)
+
+    logger.info('Submitting %d delete tasks (max_workers=%d)...', batches_len_estimated, max_workers)
 
     total_succeeded = 0
     total_failed = 0
+
+    completed = 0
+    last_logged_percent = 0
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_batch = {
             executor.submit(_delete_batch, remote_bucket, batch): (i + 1, batch)
             for i, batch in enumerate(batches)
         }
+        logger.info('All tasks submitted. Waiting for completion...')
         for future in as_completed(future_to_batch):
             batch_no, batch = future_to_batch[future]
             try:
@@ -103,23 +122,29 @@ def main(zip_path: str, max_workers: int):
                 total_succeeded += succeeded
                 total_failed += len(errors)
                 if errors:
-                    logging.warning(
+                    logger.warning(
                         'Batch %d: %d succeeded, %d failed. Sample: %s',
                         batch_no, succeeded, len(errors), errors[0],
                     )
                 else:
-                    logging.info('Batch %d: all %d succeeded.', batch_no, succeeded)
+                    logger.info('Batch %d: all %d succeeded.', batch_no, succeeded)
             except Exception as e:
                 total_failed += len(batch)
-                logging.error('Batch %d failed entirely: %s', batch_no, e)
+                logger.error('Batch %d failed entirely: %s', batch_no, e)
 
-    logging.info(
+            completed += 1
+            current_percent = int(completed * 100 / batches_len_estimated)
+            if current_percent > last_logged_percent:
+                last_logged_percent = current_percent
+                logger.info('Deleting remote objects... %s%%', current_percent)
+
+    logger.info(
         'Done. Deleted %d object(s), encountered %d error(s).',
         total_succeeded, total_failed,
     )
 
 
-def _main():
+def _main(raw_args: Iterable[str] | None = None):
     parser = argparse.ArgumentParser(description='Remove remote objects matching entries in a local zip archive.')
     parser.add_argument(
         '-f', '--list',
@@ -140,9 +165,10 @@ def _main():
         help='Max worker threads for concurrent deletion.',
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(raw_args)
 
-    if not all((DEL_ACCESS_KEY_ID, DEL_ACCESS_KEY_SECRET, DEL_BUCKET_REGION, DEL_BUCKET_NAME)):
+    del_provider = os.getenv('BUCKET_PROVIDER_DEL', '').strip()
+    if not all((DEL_ACCESS_KEY_ID, DEL_ACCESS_KEY_SECRET, DEL_BUCKET_REGION, DEL_BUCKET_NAME)) or not del_provider:
         print(
             'Please configure deletion credentials in advance.\n'
             'Expected env vars (with _DEL suffix):\n'

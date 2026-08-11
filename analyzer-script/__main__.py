@@ -107,6 +107,12 @@ def main_analyze_only(zip_or_folder_input: str, analysis_output: str):
     return True
 
 def _main():
+    if len(sys.argv) >= 2 and sys.argv[1] == '--remove':
+        raw_args = sys.argv[2:]
+        from .remobj_v2 import _main as remove_main
+        remove_main(raw_args)
+        return
+
     parser = argparse.ArgumentParser(description='Analyze Telemetry Data')
     parser.add_argument('--from', type=str, help='start date (YYYY/MM/DD)')
     parser.add_argument('--to', type=str, help='end date (YYYY/MM/DD)')

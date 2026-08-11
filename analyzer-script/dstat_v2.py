@@ -91,6 +91,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
     # Hybrid statistics
     hyb_platform_mcv = defaultdict(int)
     hyb_mov_platform_mcv = defaultdict(int)
+    patch_count = defaultdict(int)
 
     for data in data_list.values():
         data_telemetry_level = data.get('telemetry_level', -1)
@@ -127,6 +128,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
         if data_schema < 2:
             continue
 
+        # Schema 2+, Level 1+
         data_current_hooks: dict[str, str] = dict(data.get('current_hooks', {}))
         data_current_hooks_e: str = str(data_current_hooks.get('enchantment'))
         data_current_hooks_p: str = str(data_current_hooks.get('potion'))
@@ -134,9 +136,16 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
         hooks_e_current[data_current_hooks_e] += 1
         hooks_p_current[data_current_hooks_p] += 1
 
+        if data_schema >= 3:
+            # Schema 3+, Level 1+
+            data_patch_count = int(data.get('patch_count', -1))
+            if data_patch_count >= 0:
+                patch_count[str(data_patch_count)] += 1
+
         if data_telemetry_level < 2:
             continue
-        
+
+        # Schema 2+, Level 2+
         data_all_hooks: dict[str, list[str]] = dict(data.get('all_hooks'), {})
         data_all_hooks_e: tuple[str] = tuple(data_all_hooks.get('enchantment', ()))
         data_all_hooks_p: tuple[str] = tuple(data_all_hooks.get('potion', ()))
@@ -172,6 +181,7 @@ def analyze_data(data_list: dict[str, dict]) -> dict:
                 'enchantment': sort_dict_by_value(hooks_e_all),
                 'potion': sort_dict_by_value(hooks_p_all)
             },
+            'patch_count': sort_dict_by_value(patch_count),
         },
         'generated_at': datetime.now(tz=_timezone.utc).isoformat()
     }
