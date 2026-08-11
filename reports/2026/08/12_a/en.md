@@ -1,4 +1,4 @@
-# Telemetry Analysis Report (2026/07/11 – 2026/08/11)
+# Telemetry Analysis Report (2026/07/31 – 2026/08/11)
 
 **Posted by:** teddyxlandlee  
 **Date:** 2026-08-11  
