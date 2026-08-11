@@ -161,7 +161,7 @@ The telemetry backend on Tencent Cloud (Hong Kong SAR) continues to operate norm
 
 ## 9. Summary & Outlook
 
-During this telemetry period (July 11 – August 11, 2026), Enchantment Level Language Patch has demonstrated continued ecosystem evolution:
+During this telemetry period (July 3A1 – August 11, 2026), Enchantment Level Language Patch has demonstrated continued ecosystem evolution:
 
 - **Data Volume:** Total records reached **216,863** over 31 days. The decline in daily average compared to the previous period is notable and warrants monitoring in future periods.
 
