@@ -30,10 +30,10 @@ def parse_args():
     parser.add_argument("--log-level", default="INFO",
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                         help="Log level (default: INFO)")
-    parser.add_argument("--from", dest="from_date", required=False,
-                        help="Start date in YYYY/MM/DD format (required unless --skip-analysis)")
-    parser.add_argument("--to", dest="to_date", required=False,
-                        help="End date in YYYY/MM/DD format (required unless --skip-analysis)")
+    parser.add_argument("--from", dest="from_date", required=True,
+                        help="Start date in YYYY/MM/DD format")
+    parser.add_argument("--to", dest="to_date", required=True,
+                        help="End date in YYYY/MM/DD format")
     parser.add_argument("--skip-analysis", action="store_true",
                         help="Skip running analyzer-script; use existing analysis JSON file")
     parser.add_argument("--extra-focus", type=str, default="",
@@ -112,10 +112,6 @@ def main():
 
     # 1. Run analyzer-script unless skipped
     if not args.skip_analysis:
-        if args.from_date is None or args.to_date is None:
-            print("Error: --from and --to are required when not using --skip-analysis", file=sys.stderr)
-            sys.exit(1)
-
         venv_python = Path(".venv/bin/python")
         if not venv_python.exists():
             print("Error: virtual environment (.venv) not found", file=sys.stderr)
@@ -213,6 +209,7 @@ The following additional metrics or dimensions should be highlighted and analyze
 """
     prompt = f"""
 You are a professional telemetry report writer. Based on the data provided, generate a new bilingual report.
+Telemetry date range: from {args.from_date} to {args.to_date}
 
 **Raw analysis data (JSON)** has been uploaded to GitHub Gist at: {gist_url}
 Below is the full JSON content for your direct analysis.
