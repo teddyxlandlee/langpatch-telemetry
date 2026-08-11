@@ -4,7 +4,7 @@
 **发布时间:** 2026-08-11  
 **原始数据:** [GitHub Gist](https://gist.github.com/teddyxlandlee/6c4c7fc4c798e5719fd2c8dff0b7eb6f)
 
-本报告基于 Enchantment Level Language Patch 在 **2026年7月11日至8月11日** 期间收集的匿名遥测数据撰写。
+本报告基于 Enchantment Level Language Patch 在 **2026年7月31日至8月11日** 期间收集的匿名遥测数据撰写。
 
 > **隐私与透明度承诺**：本报告不包含任何个人身份信息（IP/UUID），仅用于分析模组的运行环境。
 

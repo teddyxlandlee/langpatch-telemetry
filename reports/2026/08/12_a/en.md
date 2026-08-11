@@ -4,7 +4,7 @@
 **Date:** 2026-08-11  
 **Raw Data:** [GitHub Gist](https://gist.github.com/teddyxlandlee/6c4c7fc4c798e5719fd2c8dff0b7eb6f)
 
-This report is based on anonymous telemetry data collected by Enchantment Level Language Patch between **July 11, 2026 and August 11, 2026**.
+This report is based on anonymous telemetry data collected by Enchantment Level Language Patch between **July 31, 2026 and August 11, 2026**.
 
 > **Privacy & Transparency Commitment**: This report contains no personally identifiable information (IP/UUID) and is used solely to analyze the mod's runtime environment.
 
