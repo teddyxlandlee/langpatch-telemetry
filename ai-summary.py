@@ -127,12 +127,11 @@ def main():
             "-a", str(analysis_path)
         ]
         print(f"Executing: {' '.join(cmd)}")
-        proc = subprocess.run(cmd, capture_output=True, text=True)
+        proc = subprocess.run(cmd, text=True)
         if proc.returncode != 0:
-            print("analyzer-script failed:", file=sys.stderr)
-            print(proc.stderr, file=sys.stderr)
+            print("\n=== analyzer-script failed ===")
             sys.exit(proc.returncode)
-        print("analyzer-script finished successfully")
+        print("\n=== analyzer-script finished successfully ===")
     else:
         print("Skipping analyzer-script as requested")
 
